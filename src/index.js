@@ -2,7 +2,7 @@ import { initMixin } from "./init"
 
 /**
  * Vue 构造函数
- * @param {*} options 用户选项
+ * @param {object} options 用户选项
  */
 function Vue (options) {
   this._init(options)   // 开始初始化
