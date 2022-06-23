@@ -19,7 +19,7 @@ export function initState (vm) {
 function proxy (vm, target, key) {
   Object.defineProperty(vm, key, {
     get () {
-      return vm[target][key]  // 访问 vm.name 返回 vm._data.name
+      return vm[target][key]  // 访问 vm[key] 返回 vm[target][key]，如 vm.name 返回 vm._data.name
     },
     set (newValue) {
       vm[target][key] = newValue
@@ -39,6 +39,6 @@ function initData (vm) {
   observe(data)  // 劫持 data，为 data 中的属性添加 getter 和 setter
 
   for (let key in data) {
-    proxy(vm, '_data', key)  // 将 vm._data 的属性代理到 vm 上
+    proxy(vm, '_data', key)  // 将 vm[key] 代理到 vm._data[key] 上
   }
 }

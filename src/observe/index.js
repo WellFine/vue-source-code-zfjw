@@ -1,6 +1,23 @@
+import { newArrayProto } from "./array"
+
 class Observer {
   constructor (data) {
-    this.walk(data)  // 对 data 进行遍历，劫持属性
+    // 为 data 定义一个不可枚举的属性 __ob__，值 this 就是 Observer 类的实例
+    // 这样在 array.js 中就可以调用到 Observer 实例的方法
+    // 同时下方的 observe 方法也可以通过判断数据是否有 __ob__ 标识来判断对象是否劫持观测过
+    Object.defineProperty(data, '__ob__', {
+      value: this,
+      enumerable: false  // 将 __ob__ 变为不可枚举
+    })
+
+    if (Array.isArray(data)) {
+      // 将数组的原型指向我们重写后的新原型，以此保留数组原有方法，同时重写 7 个数组操作方法
+      data.__proto__ = newArrayProto
+
+      this.observeArray(data)  // 对 data 数组中的每一项做劫持
+    } else {
+      this.walk(data)  // 对 data 对象进行遍历，劫持属性
+    }
   }
 
   /**
@@ -10,16 +27,24 @@ class Observer {
   walk (data) {
     Object.keys(data).forEach(key => defineReactive(data, key, data[key]))
   }
+
+  /**
+   * 对数组中的每一项进行劫持观测
+   * @param {array} data 要劫持观测子项的数组
+   */
+  observeArray (data) {
+    data.forEach(item => observe(item))
+  }
 }
 
 /**
- * 对属性进行劫持
- * @param {object} target 劫持对象
- * @param {string} key 劫持属性
+ * 对对象的某个属性进行劫持观测，添加 getter 和 setter
+ * @param {object} target 劫持观测的对象
+ * @param {string} key 劫持观测的对象属性
  * @param {*} value 属性值
  */
 export function defineReactive (target, key, value) {  // 下面的 get 和 set 是闭包，在读取或设置 target[key] 时 value 不会销毁
-  observe(value)  // 递归对所有的对象进行属性劫持，递归结束条件在 observe 函数中
+  observe(value)  // 递归对对象的属性值也进行劫持，递归结束条件在 observe 函数中
 
   Object.defineProperty(target, key, {
     get () {  // 取值执行 get
@@ -35,12 +60,17 @@ export function defineReactive (target, key, value) {  // 下面的 get 和 set 
 }
 
 /**
- * 对数据对象进行劫持，给其属性添加 getter 和 setter
- * @param {object} data 要劫持的数据对象
+ * 对数据对象进行劫持观测，给其属性添加 getter 和 setter
+ * @param {object} data 要劫持观测的数据对象
  */
 export function observe (data) {
   if (typeof data !== 'object' || data == null) {
     return  // 只对对象进行劫持
+  }
+
+  // 如果数据对象上的 __ob__ 标识是 Observer 类的实例，说明已经观测过了
+  if (data.__ob__ instanceof Observer) {
+    return data.__ob__  // 返回观测过了的 Observer 实例即可
   }
 
   // 如果一个对象被劫持过了，就不需要再被劫持
