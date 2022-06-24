@@ -1,4 +1,5 @@
 import babel from 'rollup-plugin-babel'
+import resolve from '@rollup/plugin-node-resolve'
 
 // rollup 默认可以导出一个对象，作为打包的配置对象
 export default {
@@ -13,6 +14,7 @@ export default {
   plugins: [ // 需要用到的插件如 babel，插件都是函数，直接执行
     babel({ // 执行 babel 函数时会加载配置文件 .babelrc
       exclude: 'node_modules/**' // 排除 node_modules 中的所有文件
-    })
+    }),
+    resolve()  // 解决导入时需要手动添加 index.js 问题
   ]
 }
