@@ -93,5 +93,9 @@ function codegen (ast) {
 export function compilerToFunction (template) {
   let ast = parseHTML(template)  // 将 template 转化成 ast 语法树
 
-  console.log(codegen(ast))  // 拼接 render 方法返回值
+  let code = codegen(ast)  // 拼接 render 方法返回值
+  code = `with (this) { return ${code} }`  // 使用 with 确保 code 中的变量取值正确
+  const render = new Function(code)  // 根据 code 生成 render 函数，模板引擎实现原理：with + new Function
+
+  return render
 }

@@ -1,4 +1,5 @@
 import { compilerToFunction } from "./compiler"
+import { mountComponent } from "./lifecycle"
 import { initState } from "./state"
 
 /**
@@ -46,5 +47,7 @@ export function initMixin (Vue) {
         ops.render = render
       }
     }
+
+    mountComponent(vm, el)  // 组件的挂载
   }
 }
