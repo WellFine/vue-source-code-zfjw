@@ -18,12 +18,12 @@ export function initMixin (Vue) {
     initState(vm)   // 初始化状态
 
     if (options.el) {
-      vm.$mount(options.el)  // $mount 实现数据的挂载
+      vm.$mount(options.el)  // $mount 实现数据的挂载，渲染数据
     }
   }
 
   /**
-   * 实现数据的挂载
+   * 实现数据的挂载，将数据渲染到指定的元素上
    * @param {string} el 指定的元素，一般为元素 id
    */
   Vue.prototype.$mount = function (el) {
