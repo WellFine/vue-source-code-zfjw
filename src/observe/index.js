@@ -1,4 +1,5 @@
 import { newArrayProto } from "./array"
+import Dep from "./dep"
 
 class Observer {
   constructor (data) {
@@ -45,9 +46,12 @@ class Observer {
  */
 export function defineReactive (target, key, value) {  // 下面的 get 和 set 是闭包，在读取或设置 target[key] 时 value 不会销毁
   observe(value)  // 递归对对象的属性值也进行劫持，递归结束条件在 observe 函数中
-
+  let dep = new Dep()  // 每个数据都对应一个 dep
   Object.defineProperty(target, key, {
     get () {  // 取值执行 get
+      if (Dep.target) {  // 只有在模板里用到的数据，渲染时才会进行依赖收集
+        dep.depend()  // 让数据的收集器 dep 收集当前 watcher
+      }
       return value
     },
     set (newValue) {  // 设置执行 set
@@ -55,6 +59,7 @@ export function defineReactive (target, key, value) {  // 下面的 get 和 set 
       observe(newValue)  // 如果设置的值是对象，还得对这个对象进行劫持
       // 这里将新值赋值给 value，这样当取值执行 get 时拿到的就是新值，因为闭包不会销毁
       value = newValue
+      dep.notify()  // 数据改变，让 dep 通知 watcher 更新视图
     }
   })
 }

@@ -1,3 +1,4 @@
+import Watcher from "./observe/watcher"
 import { createElement, createTextVNode } from "./vdom"
 import { patch } from "./vdom/patch"
 
@@ -60,13 +61,18 @@ export function initLifeCycle (Vue) {
  * 1. 调用 render 方法产生虚拟 DOM
  * 2. 根据虚拟 DOM 产生真实 DOM
  * 3. 将真实 DOM 插入到 el 元素中
- * @param {object} vm 调用 vm.$options.render 生成 vnode
+ * @param {Vue} vm 调用 vm.$options.render 生成 vnode
  * @param {object} el 将 vnode 转化为 dom 后插入到 el 元素中
  */
 export function mountComponent (vm, el) {
   vm.$el = el  // 这里的 el 是经过 querySelector 拿到的元素，存起来方便 vm._update 使用
 
-  // vm._render 方法通过 vm.$options.render 方法生成虚拟 DOM
-  // vm._update 方法根据虚拟 DOM 产生真实 DOM
-  vm._update(vm._render())
+  // 调用 updateComponent 就会进行渲染
+  const updateComponent = () => {
+    // vm._render 方法通过 vm.$options.render 方法生成虚拟 DOM
+    // vm._update 方法根据虚拟 DOM 产生真实 DOM
+    vm._update(vm._render())
+  }
+
+  new Watcher(vm, updateComponent, true)
 }
