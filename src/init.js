@@ -1,6 +1,7 @@
 import { compilerToFunction } from "./compiler"
-import { mountComponent } from "./lifecycle"
+import { callHook, mountComponent } from "./lifecycle"
 import { initState } from "./state"
+import { mergeOptions } from "./utils"
 
 /**
  * 通过方法将 Vue 传递进来，并扩展了 _init 等原型方法
@@ -13,9 +14,12 @@ export function initMixin (Vue) {
    */
   Vue.prototype._init = function (options) {
     const vm = this
-    vm.$options = options   // 将用户的选项挂载到实例上
+    // 将用户选项混入到全局选项中，然后赋值给实例选项，所以实例可以访问到全局的一些东西
+    vm.$options = mergeOptions(Vue.options, options)
 
+    callHook(vm, 'beforeCreate')  // 依次调用 beforeCreate 生命周期钩子
     initState(vm)   // 初始化状态
+    callHook(vm, 'created')  // 依次调用 created 生命周期钩子
 
     if (options.el) {
       vm.$mount(options.el)  // $mount 实现数据的挂载，渲染数据
