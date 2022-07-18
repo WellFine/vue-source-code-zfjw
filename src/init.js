@@ -18,7 +18,7 @@ export function initMixin (Vue) {
     vm.$options = mergeOptions(Vue.options, options)
 
     callHook(vm, 'beforeCreate')  // 依次调用 beforeCreate 生命周期钩子
-    initState(vm)   // 初始化状态
+    initState(vm)   // 初始化状态，包括 data、computed、watch 等
     callHook(vm, 'created')  // 依次调用 created 生命周期钩子
 
     if (options.el) {

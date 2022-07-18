@@ -8,6 +8,7 @@ import { nextTick } from "./observe/watcher"
  * @param {object} options 用户选项
  */
 function Vue (options) {
+  debugger
   this._init(options)  // 开始初始化
 }
 
