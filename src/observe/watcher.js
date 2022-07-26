@@ -5,21 +5,32 @@ let id = 0  // watcher 标识，0 表示为根组件的 watcher
 class Watcher {
   /**
    * 观察者，用于观察组件视图中用到的数据，一个 watcher 观察一个组件
-   * 数据发生变化，watcher 就更新视图
+   * 数据发生变化，渲染 watcher 就更新视图，计算属性 watcher 计算新值，用户的 watch watcher 执行对应回调
    * @param {Vue} vm watcher 对应的组件实例
-   * @param {function} fn 渲染逻辑，核心是 vm._update(vm._render())
-   * @param {any} options true 表明是一个渲染 Watcher，立即执行 fn
+   * @param {function} exprOrFn 渲染逻辑，核心是 vm._update(vm._render())
+   * @param {any} options true 表明是一个渲染 Watcher，立即执行 exprOrFn
+   * @param {function} cb watch watcher 观察的属性如果变化就执行 cb 回调
    */
-  constructor (vm, fn, options) {
+  constructor (vm, exprOrFn, options, cb) {
     this.id = id++  // 每个 watcher 的标识
     this.renderWatcher = options  // true 为渲染 Watcher
-    this.getter = fn  // 取名 getter 是因为 fn 中有在 vm 上取值的操作，调用 getter 就会取值并渲染
+
+    if (typeof exprOrFn === 'string') {  // exprOrFn 如果是 watch 中的属性名
+      this.getter = function () {  // 将 exprOrFn 转为函数，执行函数取属性值
+        return vm[exprOrFn]
+      }
+    } else {
+      this.getter = exprOrFn  // 取名 getter 是因为 exprOrFn 中有在 vm 上取值的操作，调用 getter 就会取值并渲染
+    }
+
     this.deps = []  // 记录 watcher 下有多少个数据 dep，记录的目的是后续实现计算属性以及进行一些清理工作
     this.depsId = new Set()  // 利用 Set 和 dep 的 id 来去重
     this.lazy = options.lazy
     this.dirty = this.lazy  // dirty 用于脏值检测，为 false 时计算属性取缓存值，为 true 时重新计算值并缓存
+    this.cb = cb
+    this.user = options.user  // 标识是否为用户自己的 watcher，判断是否执行 this.cb
     this.vm = vm  // 表明该 watcher 属于哪个实例，用于为 getter 方法绑定作用域
-    this.lazy ? undefined : this.get()  // this.lazy 为 true 则默认不执行 fn
+    this.value = this.lazy ? undefined : this.get()  // this.lazy 为 true 则默认不执行 fn
   }
 
   evaluate () {
@@ -79,7 +90,11 @@ class Watcher {
    * 进行更新渲染
    */
   run () {
-    this.get()
+    const oldValue = this.value
+    const newValue = this.value = this.get()
+    if (this.user) {  // watch watcher 中 this.user 为 true，执行 this.cb 回调传入新值与老值
+      this.cb.call(this.vm, newValue, oldValue)
+    }
   }
 }
 

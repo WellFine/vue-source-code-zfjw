@@ -13,6 +13,9 @@ export function initState (vm) {
   if (opts.computed) {
     initComputed(vm)  // 初始化计算属性
   }
+  if (opts.watch) {
+    initWatch(vm)  // 初始化 watch
+  }
 }
 
 /**
@@ -99,4 +102,36 @@ function createComputedGetter (key) {
     }
     return watcher.value
   }
+}
+
+/**
+ * 初始化 watch
+ */
+function initWatch (vm) {
+  const watch = vm.$options.watch
+
+  for (const key in watch) {
+    const handler = watch[key]  // watch 中的值可能为字符串、数组或函数
+    if (Array.isArray(handler)) {
+      for (let i = 0; i < handler.length; i++) {
+        createWatcher(vm, key, handler[i])
+      }
+    } else {
+      createWatcher(vm, key, handler)
+    }
+  }
+}
+
+/**
+ * 调用 vm.$watch 方法
+ * @param {Vue} vm Vue 实例
+ * @param {string} key watch 中的属性名
+ * @param {any} handler watch 的处理函数，为字符串时对应 methods 中的同名方法
+ * @returns vm.$watch 方法返回值
+ */
+function createWatcher (vm, key, handler) {
+  if (typeof handler === 'string') {  // handler 是字符串时表明要用 methods 中的同名方法
+    handler = vm[handler]  // methods 中的方法也会被挂载到 vm 上
+  }
+  return vm.$watch(key, handler)
 }
