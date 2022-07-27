@@ -8,6 +8,7 @@ import Watcher from "./observe/watcher"
 export function initState (vm) {
   const opts = vm.$options
   if (opts.data) {
+    debugger
     initData(vm)  // 初始化数据
   }
   if (opts.computed) {

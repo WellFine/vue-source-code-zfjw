@@ -31,6 +31,8 @@ methods.forEach(method => {
     if (inserted) {  // 在这里对 push、unshift、splice 三个方法新增的数据进行观测
       ob.observeArray(inserted)  // 观测 inserted 数组的每一项
     }
+
+    ob.dep.notify()  // 数组变化后，通知 watcher 更新渲染
     
     return result
   }
