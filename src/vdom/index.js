@@ -49,3 +49,12 @@ function vnode (vm, tag, key, data, children, text) {
     // 以后还会添加事件、插槽、指令等
   }
 }
+
+/**
+ * 判断两个虚拟节点类型是否相同
+ * @returns 布尔值
+ */
+export function isSameVnode (vnode1, vnode2) {
+  // 除了 tag 还要判断 key
+  return vnode1.tag === vnode2.tag && vnode1.key === vnode2.key
+}

@@ -1,6 +1,6 @@
 import Dep from "./observe/dep"
 import { observe } from "./observe/index"
-import Watcher from "./observe/watcher"
+import Watcher, { nextTick } from "./observe/watcher"
 
 /**
  * 用于初始化状态
@@ -8,7 +8,6 @@ import Watcher from "./observe/watcher"
 export function initState (vm) {
   const opts = vm.$options
   if (opts.data) {
-    debugger
     initData(vm)  // 初始化数据
   }
   if (opts.computed) {
@@ -16,6 +15,22 @@ export function initState (vm) {
   }
   if (opts.watch) {
     initWatch(vm)  // 初始化 watch
+  }
+}
+
+/**
+ * 用于扩展 $nextTick，$watch
+ */
+export function initStateMixin (Vue) {
+  Vue.prototype.$nextTick = nextTick
+
+  /**
+   * 创建一个 Watcher，观察 exprOrFn，如果其中的值变化了就执行 cb 函数
+   * @param {any} exprOrFn 可以是字符串表示 watch 中的属性名，也可以是函数返回要 watch 的属性如 () => vm.firstname
+   * @param {function} cb 值变化后要执行的回调函数
+   */
+  Vue.prototype.$watch = function (exprOrFn, cb) {
+    new Watcher(this, exprOrFn, { user: true }, cb)
   }
 }
 
