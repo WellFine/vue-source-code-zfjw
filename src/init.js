@@ -15,7 +15,7 @@ export function initMixin (Vue) {
   Vue.prototype._init = function (options = {}) {
     const vm = this
     // 将用户选项混入到全局选项中，然后赋值给实例选项，所以实例可以访问到全局的一些东西
-    vm.$options = mergeOptions(Vue.options, options)
+    vm.$options = mergeOptions(this.constructor.options, options)
 
     callHook(vm, 'beforeCreate')  // 依次调用 beforeCreate 生命周期钩子
     initState(vm)   // 初始化状态，包括 data、computed、watch 等

@@ -1,5 +1,5 @@
 import Watcher from "./observe/watcher"
-import { createElement, createTextVNode } from "./vdom"
+import { createElementVNode, createTextVNode } from "./vdom"
 import { patch } from "./vdom/patch"
 
 /**
@@ -14,12 +14,17 @@ export function initLifeCycle (Vue) {
   Vue.prototype._update = function (vnode) {
     const vm = this
     const el = vm.$el  // 拿到旧的 DOM 元素
-
-    vm.$el = patch(el, vnode)  // 将新 vnode 转化的 DOM 存到 vm.$el 中，这样下次 patch 可以拿到并将其当成旧节点
+    const prevVnode = vm._vnode  // 拿到上次的 vnode，如果不存在就是初次渲染
+    vm._vnode = vnode  // 将 vnode 保留到实例上
+    if (prevVnode) {  // 更新渲染
+      vm.$el = patch(prevVnode, vnode)  // diff 算法
+    } else {  // 初次渲染
+      vm.$el = patch(el, vnode)  // 将新 vnode 转化的 DOM 存到 vm.$el 中，这样下次 patch 可以拿到并将其当成旧节点
+    }
   }
 
   /**
-   * 调用 vm.$options.render() 方法生成 vnode，render() => _c() => createElement() => vnode
+   * 调用 vm.$options.render() 方法生成 vnode，render() => _c() => createElementVNode() => vnode
    * @returns 返回一个 vnode
    */
   Vue.prototype._render = function () {
@@ -34,7 +39,7 @@ export function initLifeCycle (Vue) {
    * @returns 一个虚拟的元素 vnode 节点
    */
   Vue.prototype._c = function () {
-    return createElement(this, ...arguments)
+    return createElementVNode(this, ...arguments)
   }
 
   /**

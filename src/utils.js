@@ -30,6 +30,16 @@ LIFECYCLE.forEach(hook => {
   }
 })
 
+strats.components = function (parentVal, childVal) {
+  const res = Object.create(parentVal)  // res.__proto__ => parentVal
+  if (childVal) {
+    for (const key in childVal) {
+      res[key] = childVal[key]  // 局部组件有值就访问局部组件 childVal，否则通过 __proto__ 访问全局组件 parentVal
+    }
+  }
+  return res
+}
+
 // data、computed 等也是用策略模式来混入
 // strats.data = function () {}
 // strats.computed = function () {}
