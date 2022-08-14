@@ -39,6 +39,26 @@ function createComponentVNode (vm, tag, key, data, children, Ctor) {
     // 这里不直接调用 Vue.extend 是为了让继承 Vue 的 Sub 类也能访问到 extend 静态方法
     Ctor = vm.$options._base.extend(Ctor)  // 转成构造函数
   }
+
+  data.hook = {
+    init (vnode) {  // 组件创建真实节点时，会调用 init 方法
+      /**
+       * 这里不直接用参数 Ctor 而用 vnode.componentOptions.Ctor
+       * 是因为源码中 data.hook 是写在外部的
+       * 这里为了方便才写在了 createComponentVNode 函数中
+       */
+      const instance = vnode.componentInstance = new vnode.componentOptions.Ctor
+      /**
+       * $mount(el) 没有传入 el 参数
+       * mountComponent(vm, el) el 就为空
+       * vm._update() 中 el 为空
+       * patch(el, vnode) 传入的 el 就为空
+       * 所以通过判断 patch 方法第一个参数是否有值就能知道是不是组件的挂载
+       */
+      instance.$mount()
+    }
+  }
+  
   return vnode(vm, tag, key, data, children, null, { Ctor })
 }
 

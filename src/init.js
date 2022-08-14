@@ -40,10 +40,7 @@ export function initMixin (Vue) {
       if (!ops.template && el) {  // 没有写 template，但是指定了 el 且 el 元素存在
         template = el.outerHTML  // 这里不考虑兼容性细节，直接返回元素字符串
       } else {
-        // 这里没有考虑同时不传 el 和 template 的情况，需要注意
-        if (el) {
-          template = ops.template // 用户传了 template
-        }
+        template = ops.template // 用户传了 template
       }
 
       if (template) {  // 最终拿到了用户传入的 template 或是由 el 转化的 template 字符串

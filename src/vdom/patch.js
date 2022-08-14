@@ -1,5 +1,15 @@
 import { isSameVnode } from "."
 
+function createComponent (vnode) {
+  let i = vnode.data
+  if ((i = i.hook) && (i = i.init)) {
+    i(vnode)  // 执行组件的初始化钩子
+  }
+  if (vnode.componentInstance) {
+    return true  // 执行 init 钩子后，vnode.componentInstance 有值则返回 true 说明是组件
+  }
+}
+
 /**
  * 根据 vnode 创建真实 DOM 节点
  * @param {object} vnode 要创建 DOM 节点的 vnode
@@ -8,6 +18,14 @@ import { isSameVnode } from "."
 export function createElm (vnode) {
   let { tag, data, children, text } = vnode
   if (typeof tag === 'string') {  // vnode 是元素类型
+    if (createComponent(vnode)) {  // 元素是自定义组件
+      /**
+       * createComponent 方法中会执行组件的 init 钩子
+       * init 钩子及后续操作会将组件 vnode 转化为真实节点并存在 vnode.componentInstance.$el 中
+       */
+      return vnode.componentInstance.$el
+    }
+    
     // 将真实节点与虚拟节点对应起来，方便后续 diff 算法通过虚拟节点找到真实节点并修改
     vnode.el = document.createElement(tag)
     patchProps(vnode.el, {}, data)  // 处理节点属性
@@ -56,11 +74,16 @@ function patchProps (el, oldProps = {}, props = {}) {
 /**
  * 负责渲染，将 vnode 转化为真实 DOM 后替换掉 oldVNode
  * patch 既有初始化渲染的功能，也有更新渲染的功能
- * @param {object} oldVNode 初次渲染为 el 元素，更新时则为旧节点
+ * @param {object} oldVNode 初次渲染为 el 元素，更新时则为旧节点，如果为空是组件的挂载
  * @param {object} vnode 要渲染的 vnode
  * @returns 返回新 vnode 转化的真实 DOM
  */
 export function patch (oldVNode, vnode) {
+  if (!oldVNode) {  // oldVNode 为空，视为组件的挂载，具体原因可以看 https://male_eagle.gitee.io/blog/vue/source-code/v2_write/18_component_render.html#创建真实节点
+    // 直接将 vnode 变为真实节点并返回，这个真实节点在 vm._update 中会被赋值给 vm.$el
+    return createElm(vnode)
+  }
+  
   const isRealElement = oldVNode.nodeType
   if (isRealElement) {  // 初次渲染
     const elm = oldVNode  // 获取初次渲染的 el 元素
